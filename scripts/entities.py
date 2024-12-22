@@ -75,7 +75,7 @@ class PhysicsEntity:
         
     def render(self, surf, offset=(0, 0)):
         surf.blit(pygame.transform.flip(self.animation.img(), self.flip, False), (self.pos[0] - offset[0] + self.anim_offset[0], self.pos[1] - offset[1] + self.anim_offset[1]))
-
+        
 class Enemy(PhysicsEntity):
     def __init__(self, game, pos, size):
         super().__init__(game, 'enemy', pos, size)
@@ -112,14 +112,26 @@ class Enemy(PhysicsEntity):
             self.set_action('run')
         else:
             self.set_action('idle')
-    
+            
+        if abs(self.game.player.dashing) >= 50:
+            if self.rect().colliderect(self.game.player.rect()):
+                self.game.screenshake = max(16, self.game.screenshake)
+                for i in range(30):
+                    angle = random.random() * math.pi * 2
+                    speed = random.random() * 5
+                    self.game.sparks.append(Spark(self.rect().center, angle, 2 + random.random()))
+                    self.game.particles.append(Particle(self.game, 'particle', self.rect().center, velocity=[math.cos(angle + math.pi) * speed * 0.5, math.sin(angle + math.pi) * speed * 0.5], frame=random.randint(0, 7)))
+                self.game.sparks.append(Spark(self.rect().center, 0, 5 + random.random()))
+                self.game.sparks.append(Spark(self.rect().center, math.pi, 5 + random.random()))
+                return True
+            
     def render(self, surf, offset=(0, 0)):
         super().render(surf, offset=offset)
         
         if self.flip:
-            surf.blit(pygame.transform.flip(self.game.assets['gun'], True, False), (self.rect().centerx - 2 - self.game.assets['gun'].get_width() - offset[0], self.rect().centery - offset[1]))
+            surf.blit(pygame.transform.flip(self.game.assets['gun'], True, False), (self.rect().centerx - 4 - self.game.assets['gun'].get_width() - offset[0], self.rect().centery - offset[1]))
         else:
-            surf.blit(self.game.assets['gun'], (self.rect().centerx + 2 - offset[0], self.rect().centery - offset[1]))  
+            surf.blit(self.game.assets['gun'], (self.rect().centerx + 4 - offset[0], self.rect().centery - offset[1]))
 
 class Player(PhysicsEntity):
     def __init__(self, game, pos, size):
@@ -135,7 +147,7 @@ class Player(PhysicsEntity):
         self.air_time += 1
         
         if self.air_time > 120:
-            if not self.dead:
+            if not self.game.dead:
                 self.game.screenshake = max(16, self.game.screenshake)
             self.game.dead += 1
         
@@ -162,7 +174,6 @@ class Player(PhysicsEntity):
                 self.set_action('idle')
         
         if abs(self.dashing) in {60, 50}:
-            self.game.screenshake = max(16, self.game.screenshake)
             for i in range(20):
                 angle = random.random() * math.pi * 2
                 speed = random.random() * 0.5 + 0.5

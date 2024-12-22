@@ -4,12 +4,12 @@ import random
 
 import pygame
 
-from scripts.spark import Spark
 from scripts.utils import load_image, load_images, Animation
 from scripts.entities import PhysicsEntity, Player, Enemy
 from scripts.tilemap import Tilemap
 from scripts.clouds import Clouds
 from scripts.particle import Particle
+from scripts.spark import Spark
 
 class Game:
     def __init__(self):
@@ -55,12 +55,12 @@ class Game:
         self.screenshake = 0
         
     def load_level(self, map_id):
-        self.tilemap.load('data/maps/' +str(map_id) + '.json')
+        self.tilemap.load('data/maps/' + str(map_id) + '.json')
         
         self.leaf_spawners = []
         for tree in self.tilemap.extract([('large_decor', 2)], keep=True):
             self.leaf_spawners.append(pygame.Rect(4 + tree['pos'][0], 4 + tree['pos'][1], 23, 13))
-        
+            
         self.enemies = []
         for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1)]):
             if spawner['variant'] == 0:
@@ -68,14 +68,14 @@ class Game:
                 self.player.air_time = 0
             else:
                 self.enemies.append(Enemy(self, spawner['pos'], (8, 15)))
-                
+            
         self.projectiles = []
         self.particles = []
         self.sparks = []
         
         self.scroll = [0, 0]
         self.dead = 0
-         
+        
     def run(self):
         while True:
             self.display.blit(self.assets['background'], (0, 0))
@@ -111,6 +111,7 @@ class Game:
                 self.player.update(self.tilemap, (self.movement[1] - self.movement[0], 0))
                 self.player.render(self.display, offset=render_scroll)
             
+            # [[x, y], direction, timer]
             for projectile in self.projectiles.copy():
                 projectile[0][0] += projectile[1]
                 projectile[2] += 1
@@ -132,13 +133,13 @@ class Game:
                             speed = random.random() * 5
                             self.sparks.append(Spark(self.player.rect().center, angle, 2 + random.random()))
                             self.particles.append(Particle(self, 'particle', self.player.rect().center, velocity=[math.cos(angle + math.pi) * speed * 0.5, math.sin(angle + math.pi) * speed * 0.5], frame=random.randint(0, 7)))
-                       
+                        
             for spark in self.sparks.copy():
                 kill = spark.update()
                 spark.render(self.display, offset=render_scroll)
                 if kill:
-                    self.sparks.remove(spark)                      
-                        
+                    self.sparks.remove(spark)
+            
             for particle in self.particles.copy():
                 kill = particle.update()
                 particle.render(self.display, offset=render_scroll)

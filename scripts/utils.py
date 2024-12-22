@@ -1,7 +1,8 @@
 import os
+
 import pygame
 
-BASE_IMG_PATH = "data/images/"
+BASE_IMG_PATH = 'data/images/'
 
 def load_image(path):
     img = pygame.image.load(BASE_IMG_PATH + path).convert()
@@ -11,7 +12,7 @@ def load_image(path):
 def load_images(path):
     images = []
     for img_name in sorted(os.listdir(BASE_IMG_PATH + path)):
-        images.append(load_image(path + "/" + img_name))
+        images.append(load_image(path + '/' + img_name))
     return images
 
 class Animation:
@@ -21,7 +22,7 @@ class Animation:
         self.img_duration = img_dur
         self.done = False
         self.frame = 0
-        
+    
     def copy(self):
         return Animation(self.images, self.img_duration, self.loop)
     
