@@ -52,6 +52,8 @@ class Game:
         
         self.load_level(0)
         
+        self.screenshake = 0
+        
     def load_level(self, map_id):
         self.tilemap.load('data/maps/' +str(map_id) + '.json')
         
@@ -77,6 +79,8 @@ class Game:
     def run(self):
         while True:
             self.display.blit(self.assets['background'], (0, 0))
+            
+            self.screenshake = max(0, self.screenshake - 1)
             
             if self.dead:
                 self.dead += 1
@@ -107,12 +111,6 @@ class Game:
                 self.player.update(self.tilemap, (self.movement[1] - self.movement[0], 0))
                 self.player.render(self.display, offset=render_scroll)
             
-            for spark in self.sparks.copy():
-                kill = spark.update()
-                spark.render(self.display, offset=render_scroll)
-                if kill:
-                    self.sparks.remove(spark)
-            
             for projectile in self.projectiles.copy():
                 projectile[0][0] += projectile[1]
                 projectile[2] += 1
@@ -128,11 +126,18 @@ class Game:
                     if self.player.rect().collidepoint(projectile[0]):
                         self.projectiles.remove(projectile)
                         self.dead += 1
+                        self.screenshake = max(16, self.screenshake)
                         for i in range(30):
                             angle = random.random() * math.pi * 2
                             speed = random.random() * 5
                             self.sparks.append(Spark(self.player.rect().center, angle, 2 + random.random()))
                             self.particles.append(Particle(self, 'particle', self.player.rect().center, velocity=[math.cos(angle + math.pi) * speed * 0.5, math.sin(angle + math.pi) * speed * 0.5], frame=random.randint(0, 7)))
+                       
+            for spark in self.sparks.copy():
+                kill = spark.update()
+                spark.render(self.display, offset=render_scroll)
+                if kill:
+                    self.sparks.remove(spark)                      
                         
             for particle in self.particles.copy():
                 kill = particle.update()
@@ -161,7 +166,8 @@ class Game:
                     if event.key == pygame.K_RIGHT:
                         self.movement[1] = False
             
-            self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), (0, 0))
+            screenshake_offset = (random.random() * self.screenshake - self.screenshake / 2, random.random() * self.screenshake - self.screenshake / 2)
+            self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), screenshake_offset)
             pygame.display.update()
             self.clock.tick(60)
 

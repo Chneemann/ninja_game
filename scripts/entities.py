@@ -134,7 +134,9 @@ class Player(PhysicsEntity):
         
         self.air_time += 1
         
-        if self.air_time > 180:
+        if self.air_time > 120:
+            if not self.dead:
+                self.game.screenshake = max(16, self.game.screenshake)
             self.game.dead += 1
         
         if self.collisions['down']:
@@ -160,6 +162,7 @@ class Player(PhysicsEntity):
                 self.set_action('idle')
         
         if abs(self.dashing) in {60, 50}:
+            self.game.screenshake = max(16, self.game.screenshake)
             for i in range(20):
                 angle = random.random() * math.pi * 2
                 speed = random.random() * 0.5 + 0.5
